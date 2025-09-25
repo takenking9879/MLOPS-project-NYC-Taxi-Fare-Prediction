@@ -1,0 +1,142 @@
+stages:
+  data_validation:
+    cmd: python3 src/data/data_validation.py
+    deps:
+    - src/data/data_validation.py
+    - src/utils.py
+    params:
+    - data_validation.columns_required
+    - data_validation.columns_num
+    - data_validation.columns_str
+
+  data_ingestion:
+    cmd: python3 src/data/data_ingestion.py
+    deps:
+    - src/data/data_ingestion.py
+    - src/utils.py
+    params:
+    - data_ingestion.columns_required
+    - data_ingestion.columns_datetime
+    outs:
+    - data/raw
+  
+  data_preprocessing:
+    cmd: python3 src/data/data_preprocessing.py
+    deps:
+    - src/data/data_preprocessing.py
+    - src/utils.py
+    - data/raw/train.parquet
+    - data/raw/val.parquet
+    - data/raw/test.parquet
+    params:
+      - data_preprocessing.filters
+      - data_preprocessing.scaler_method
+      - data_preprocessing.imputer_method
+
+    outs:
+    - data/processed
+  
+  data_osrm:
+    cmd: python3 src/data/data_osrm.py
+    deps:
+    - src/data/data_osrm.py
+    - src/utils.py
+    - src/osrm.py
+    - data/processed/train_processed.parquet
+    - data/processed/val_processed.parquet
+    - data/processed/test_processed.parquet
+    params:
+    - data_osrm.osrm
+    outs:
+    - data/processed_osrm
+
+  train_lgbm:
+    cmd: python3 src/model/train_lgbm.py
+    deps:
+    - src/model/train_lgbm.py
+    - src/utils.py
+    - data/processed_osrm/train_processed_osrm.parquet
+    params:
+    - model_building.target
+    - model_building.models.lgbm
+    outs:
+    - models/saved_models/lgbm_model.pkl
+    - models/saved_models/lgbm_model_feature_importances.csv
+    - models/saved_models/lgbm_model_meta.json
+
+  train_xgboost:
+    cmd: python3 src/model/train_xgboost.py
+    deps:
+    - src/model/train_xgboost.py
+    - src/utils.py
+    - data/processed_osrm/train_processed_osrm.parquet
+    params:
+    - model_building.target
+    - model_building.models.xgboost
+    outs:
+    - models/saved_models/xgboost_model.pkl
+    - models/saved_models/xgboost_model_feature_importances.csv
+    - models/saved_models/xgboost_model_meta.json
+
+  train_catboost:
+    cmd: python3 src/model/train_catboost.py
+    deps:
+    - src/model/train_catboost.py
+    - src/utils.py
+    - data/processed_osrm/train_processed_osrm.parquet
+    params:
+    - model_building.target
+    - model_building.models.catboost
+    outs:
+    - models/saved_models/catboost_model.cbm
+    - models/saved_models/catboost_model_feature_importances.csv
+    - models/saved_models/catboost_model_meta.json
+
+  train_stacking:
+    cmd: python3 src/model/train_stacking.py
+    deps:
+    - src/model/train_stacking.py
+    - src/utils.py
+    - models/saved_models/lgbm_model.pkl
+    - models/saved_models/xgboost_model.pkl
+    - models/saved_models/catboost_model.cbm
+    - data/processed_osrm/train_processed_osrm.parquet
+    params:
+    - model_building.target
+    - model_building.meta_train_frac
+    - model_building.meta_model
+    outs:
+    - models/saved_models/stacking_meta_coefs.csv
+    - models/saved_models/stacking_meta_model.pkl
+
+  model_evaluation:
+    cmd: python3 src/model/model_evaluation.py
+    deps:
+    - src/model/model_evaluation.py
+    - src/utils.py
+    - models/saved_models/lgbm_model.pkl
+    - models/saved_models/xgboost_model.pkl
+    - models/saved_models/catboost_model.cbm
+    - models/saved_models/stacking_meta_coefs.csv
+    - models/saved_models/stacking_meta_model.pkl
+    - models/saved_models/xgboost_model_feature_importances.csv
+    - models/saved_models/lgbm_model_feature_importances.csv
+    - models/saved_models/catboost_model_feature_importances.csv
+    - models/saved_models/xgboost_model_meta.json
+    - models/saved_models/lgbm_model_meta.json
+    - models/saved_models/catboost_model_meta.json
+    - data/processed_osrm/val_processed_osrm.parquet
+    - data/processed_osrm/test_processed_osrm.parquet
+    params:
+    - model_evaluation.tracking_uri
+    - model_evaluation.experiment_name
+    - model_evaluation.val_path
+    - model_evaluation.test_path
+    - model_evaluation.target
+    - model_evaluation.models_dir
+    - model_evaluation.selection
+    - model_evaluation.output_final_dir
+    - model_evaluation.metrics_dir
+    outs:
+    - models/metrics/
+

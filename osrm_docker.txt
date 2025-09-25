@@ -1,0 +1,8 @@
+#extract
+docker run -t -v /home/jorge/DocumentsWLS/Data_Science_Projects/MLOPS-project-NYC-Taxi-Fare-Prediction/osrm:/data osrm/osrm-backend osrm-extract -p /opt/car.lua /data/new-york-250917.osm.pbf
+#partition
+docker run -t -v /home/jorge/DocumentsWLS/Data_Science_Projects/MLOPS-project-NYC-Taxi-Fare-Prediction/osrm:/data osrm/osrm-backend osrm-partition /data/new-york-250917.osrm
+#customize
+docker run -t -v /home/jorge/DocumentsWLS/Data_Science_Projects/MLOPS-project-NYC-Taxi-Fare-Prediction/osrm:/data osrm/osrm-backend osrm-customize /data/new-york-250917.osrm
+#routed
+docker run -d -p 5000:5000 -v /home/jorge/DocumentsWLS/Data_Science_Projects/MLOPS-project-NYC-Taxi-Fare-Prediction/osrm:/data osrm/osrm-backend osrm-routed --algorithm mld /data/new-york-250917.osrm

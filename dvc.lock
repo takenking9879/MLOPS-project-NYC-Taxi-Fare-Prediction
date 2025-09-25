@@ -1,0 +1,428 @@
+schema: '2.0'
+stages:
+  data_validation:
+    cmd: python3 src/data/data_validation.py
+    deps:
+    - path: src/data/data_validation.py
+      hash: md5
+      md5: 49a7cafe31fea44bf915f5052fcc704d
+      size: 2969
+    - path: src/utils.py
+      hash: md5
+      md5: f1691055540956d368120a3ed81abac8
+      size: 2391
+    params:
+      params.yaml:
+        data_validation.columns_num:
+        - Passenger_Count
+        - Trip_Distance
+        - Start_Lon
+        - Start_Lat
+        - End_Lon
+        - End_Lat
+        - Fare_Amt
+        - Total_Amt
+        data_validation.columns_required:
+        - Trip_Pickup_DateTime
+        - Trip_Dropoff_DateTime
+        - Passenger_Count
+        - Trip_Distance
+        - Start_Lon
+        - Start_Lat
+        - End_Lon
+        - End_Lat
+        - Fare_Amt
+        - Total_Amt
+        data_validation.columns_str:
+        - Trip_Pickup_DateTime
+        - Trip_Dropoff_DateTime
+  data_ingestion:
+    cmd: python3 src/data/data_ingestion.py
+    deps:
+    - path: src/data/data_ingestion.py
+      hash: md5
+      md5: c7051dc4c4d549ee0930851fd5ae5895
+      size: 7817
+    - path: src/utils.py
+      hash: md5
+      md5: f1691055540956d368120a3ed81abac8
+      size: 2391
+    params:
+      params.yaml:
+        data_ingestion.columns_datetime:
+        - Trip_Pickup_DateTime
+        - Trip_Dropoff_DateTime
+        data_ingestion.columns_required:
+        - Trip_Pickup_DateTime
+        - Trip_Dropoff_DateTime
+        - Passenger_Count
+        - Trip_Distance
+        - Start_Lon
+        - Start_Lat
+        - End_Lon
+        - End_Lat
+        - Fare_Amt
+        - Total_Amt
+    outs:
+    - path: data/raw
+      hash: md5
+      md5: 45ea71d54934762017fc667ac751ea92.dir
+      size: 985591605
+      nfiles: 3
+  data_preprocessing:
+    cmd: python3 src/data/data_preprocessing.py
+    deps:
+    - path: data/raw/test.parquet
+      hash: md5
+      md5: 8549d5c297758a32c002ad05b2819083
+      size: 169990860
+    - path: data/raw/train.parquet
+      hash: md5
+      md5: be84f6ecfe1f6c9c7b2223ae26a014e5
+      size: 643301971
+    - path: data/raw/val.parquet
+      hash: md5
+      md5: eb7db605c093c543a8df4c780c0fa853
+      size: 172298774
+    - path: src/data/data_preprocessing.py
+      hash: md5
+      md5: 673e4f80ae7eff44de611b82db3f0943
+      size: 16743
+    - path: src/utils.py
+      hash: md5
+      md5: f1691055540956d368120a3ed81abac8
+      size: 2391
+    params:
+      params.yaml:
+        data_preprocessing.filters:
+          real_time: true
+          trip_distance: true
+          real_velocity_limit: 300
+          real_time_days: 32
+          constant_vel_limit:
+          - 30
+          - 100
+          - 56
+          distance_limit: 800
+          haversine_ratio_limit: 80
+          ratio_distance_list:
+          - - 40
+            - 0.8
+          - - 15
+            - 5
+          - - 3
+            - 1
+          - - 4
+            - 0.5
+        data_preprocessing.imputer_method: simpleimputer
+        data_preprocessing.scaler_method: standardscaler
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: ffc62f08b0777ba7d26b67c75b382420.dir
+      size: 2892122592
+      nfiles: 3
+  data_osrm:
+    cmd: python3 src/data/data_osrm.py
+    deps:
+    - path: data/processed/test_processed.parquet
+      hash: md5
+      md5: 6cb05771debdb1d8bf5b94b425aca533
+      size: 501977886
+    - path: data/processed/train_processed.parquet
+      hash: md5
+      md5: 3bf3e0f37dc6e919bc1ef9c358cf144a
+      size: 1888745466
+    - path: data/processed/val_processed.parquet
+      hash: md5
+      md5: 783564e5c5be2310c471f5f83a35bb76
+      size: 501399240
+    - path: src/data/data_osrm.py
+      hash: md5
+      md5: 91407136c282579686aeaacf4957c402
+      size: 8269
+    - path: src/osrm.py
+      hash: md5
+      md5: a437a50a48fc586906b1b0744aaa8b96
+      size: 6455
+    - path: src/utils.py
+      hash: md5
+      md5: f1691055540956d368120a3ed81abac8
+      size: 2391
+    params:
+      params.yaml:
+        data_osrm.osrm:
+          add_osrm: true
+          osrm_base: http://127.0.0.1:5000/route/v1/driving
+          concurrency: 180
+          chunk_size: 400000
+    outs:
+    - path: data/processed_osrm
+      hash: md5
+      md5: 218db4d5923efe086fa0fdbb6f610773.dir
+      size: 3404065815
+      nfiles: 3
+  train_lgbm:
+    cmd: python3 src/model/train_lgbm.py
+    deps:
+    - path: data/processed_osrm/train_processed_osrm.parquet
+      hash: md5
+      md5: 02392656fc40aff35798884c34355b46
+      size: 2221948612
+    - path: src/model/train_lgbm.py
+      hash: md5
+      md5: a8188c90dca722a291df512886db120d
+      size: 3671
+    - path: src/utils.py
+      hash: md5
+      md5: f1691055540956d368120a3ed81abac8
+      size: 2391
+    params:
+      params.yaml:
+        model_building.models.lgbm:
+          class: lightgbm.LGBMRegressor
+          params:
+            n_estimators: 400
+            learning_rate: 0.08
+            max_depth: 8
+            random_state: 42
+            objective: regression
+            metric: rmse
+            verbosity: 1
+            n_jobs: -1
+        model_building.target: Fare_Amt
+    outs:
+    - path: models/saved_models/lgbm_model.pkl
+      hash: md5
+      md5: f87313f101f7e2b70d282c21c67f3564
+      size: 1278302
+    - path: models/saved_models/lgbm_model_feature_importances.csv
+      hash: md5
+      md5: ee3a9ae613f4332db50ffc11cd42f937
+      size: 644
+    - path: models/saved_models/lgbm_model_meta.json
+      hash: md5
+      md5: 75eb60aa76b41fda0ac8acc796c5b36b
+      size: 587
+  train_xgboost:
+    cmd: python3 src/model/train_xgboost.py
+    deps:
+    - path: data/processed_osrm/train_processed_osrm.parquet
+      hash: md5
+      md5: 02392656fc40aff35798884c34355b46
+      size: 2221948612
+    - path: src/model/train_xgboost.py
+      hash: md5
+      md5: cf60070499e83317764572a1b225a8ba
+      size: 3475
+    - path: src/utils.py
+      hash: md5
+      md5: f1691055540956d368120a3ed81abac8
+      size: 2391
+    params:
+      params.yaml:
+        model_building.models.xgboost:
+          class: xgboost.XGBRegressor
+          params:
+            n_estimators: 550
+            max_depth: 8
+            tree_method: hist
+            learning_rate: 0.09
+            subsample: 0.8
+            random_state: 42
+            objective: reg:squarederror
+            device: cuda
+        model_building.target: Fare_Amt
+    outs:
+    - path: models/saved_models/xgboost_model.pkl
+      hash: md5
+      md5: c9c03d3836ef08a152b62d09ec971516
+      size: 8573562
+    - path: models/saved_models/xgboost_model_feature_importances.csv
+      hash: md5
+      md5: 3627af0c3c7138b02ca092811e21e631
+      size: 865
+    - path: models/saved_models/xgboost_model_meta.json
+      hash: md5
+      md5: 758b26772e58fd6f197b246360ba974f
+      size: 611
+  train_catboost:
+    cmd: python3 src/model/train_catboost.py
+    deps:
+    - path: data/processed_osrm/train_processed_osrm.parquet
+      hash: md5
+      md5: 02392656fc40aff35798884c34355b46
+      size: 2221948612
+    - path: src/model/train_catboost.py
+      hash: md5
+      md5: 2bbd29b9e39ffc4b51c2e47ae531d6e9
+      size: 7105
+    - path: src/utils.py
+      hash: md5
+      md5: f1691055540956d368120a3ed81abac8
+      size: 2391
+    params:
+      params.yaml:
+        model_building.models.catboost:
+          class: catboost.CatBoostRegressor
+          params:
+            iterations: 600
+            learning_rate: 0.08
+            depth: 8
+            random_seed: 42
+            task_type: GPU
+            devices: '0'
+            loss_function: RMSE
+            eval_metric: RMSE
+        model_building.target: Fare_Amt
+    outs:
+    - path: models/saved_models/catboost_model.cbm
+      hash: md5
+      md5: 9364f63bfd198f31b72f642697a63d2f
+      size: 2531176
+    - path: models/saved_models/catboost_model_feature_importances.csv
+      hash: md5
+      md5: 7d5b8de19f87845c22b6b7926fc9387c
+      size: 1031
+    - path: models/saved_models/catboost_model_meta.json
+      hash: md5
+      md5: 7d97780fbecbd6e4beb9bf85bb2da45d
+      size: 605
+  train_stacking:
+    cmd: python3 src/model/train_stacking.py
+    deps:
+    - path: data/processed_osrm/train_processed_osrm.parquet
+      hash: md5
+      md5: 02392656fc40aff35798884c34355b46
+      size: 2221948612
+    - path: models/saved_models/catboost_model.cbm
+      hash: md5
+      md5: 9364f63bfd198f31b72f642697a63d2f
+      size: 2531176
+    - path: models/saved_models/lgbm_model.pkl
+      hash: md5
+      md5: f87313f101f7e2b70d282c21c67f3564
+      size: 1278302
+    - path: models/saved_models/xgboost_model.pkl
+      hash: md5
+      md5: c9c03d3836ef08a152b62d09ec971516
+      size: 8573562
+    - path: src/model/train_stacking.py
+      hash: md5
+      md5: 8b157544ebdf3c1dabf324dd2a13bdd6
+      size: 6475
+    - path: src/utils.py
+      hash: md5
+      md5: f1691055540956d368120a3ed81abac8
+      size: 2391
+    params:
+      params.yaml:
+        model_building.meta_model:
+          class: sklearn.linear_model.Ridge
+          params:
+            alpha: 1.2
+            fit_intercept: true
+            solver: auto
+            random_state: 42
+            max_iter: 1000
+        model_building.meta_train_frac: 0.8
+        model_building.target: Fare_Amt
+    outs:
+    - path: models/saved_models/stacking_meta_coefs.csv
+      hash: md5
+      md5: d64f813235008fb3d76e520e5d25e0a7
+      size: 143
+    - path: models/saved_models/stacking_meta_model.pkl
+      hash: md5
+      md5: 544b085e527a9c0a892f5403ace766b8
+      size: 881
+  model_evaluation:
+    cmd: python3 src/model/model_evaluation.py
+    deps:
+    - path: data/processed_osrm/test_processed_osrm.parquet
+      hash: md5
+      md5: 37696ee655f524998504760af9af7514
+      size: 591193145
+    - path: data/processed_osrm/val_processed_osrm.parquet
+      hash: md5
+      md5: 579376050b779338b363595fbae61f89
+      size: 590924058
+    - path: models/saved_models/catboost_model.cbm
+      hash: md5
+      md5: 9364f63bfd198f31b72f642697a63d2f
+      size: 2531176
+    - path: models/saved_models/catboost_model_feature_importances.csv
+      hash: md5
+      md5: 7d5b8de19f87845c22b6b7926fc9387c
+      size: 1031
+    - path: models/saved_models/catboost_model_meta.json
+      hash: md5
+      md5: 7d97780fbecbd6e4beb9bf85bb2da45d
+      size: 605
+    - path: models/saved_models/lgbm_model.pkl
+      hash: md5
+      md5: f87313f101f7e2b70d282c21c67f3564
+      size: 1278302
+    - path: models/saved_models/lgbm_model_feature_importances.csv
+      hash: md5
+      md5: ee3a9ae613f4332db50ffc11cd42f937
+      size: 644
+    - path: models/saved_models/lgbm_model_meta.json
+      hash: md5
+      md5: 75eb60aa76b41fda0ac8acc796c5b36b
+      size: 587
+    - path: models/saved_models/stacking_meta_coefs.csv
+      hash: md5
+      md5: d64f813235008fb3d76e520e5d25e0a7
+      size: 143
+    - path: models/saved_models/stacking_meta_model.pkl
+      hash: md5
+      md5: 544b085e527a9c0a892f5403ace766b8
+      size: 881
+    - path: models/saved_models/xgboost_model.pkl
+      hash: md5
+      md5: c9c03d3836ef08a152b62d09ec971516
+      size: 8573562
+    - path: models/saved_models/xgboost_model_feature_importances.csv
+      hash: md5
+      md5: 3627af0c3c7138b02ca092811e21e631
+      size: 865
+    - path: models/saved_models/xgboost_model_meta.json
+      hash: md5
+      md5: 758b26772e58fd6f197b246360ba974f
+      size: 611
+    - path: src/model/model_evaluation.py
+      hash: md5
+      md5: cc8e24da6faf720876ee0048b4bb6eac
+      size: 25650
+    - path: src/utils.py
+      hash: md5
+      md5: f1691055540956d368120a3ed81abac8
+      size: 2391
+    params:
+      params.yaml:
+        model_evaluation.experiment_name: taxi-fare-prediction
+        model_evaluation.metrics_dir: models/metrics
+        model_evaluation.models_dir: models/saved_models
+        model_evaluation.output_final_dir: models/final_model
+        model_evaluation.selection:
+          mode: overall
+          weights:
+            rmse: 0.5
+            mae: 0.25
+            r2: 0.05
+            mape: 0.1
+            medae: 0.1
+        model_evaluation.target: Fare_Amt
+        model_evaluation.test_path: 
+          data/processed_osrm/test_processed_osrm.parquet
+        model_evaluation.tracking_uri: 
+          https://dagshub.com/takenking9879/MLOPS-project-NYC-Taxi-Fare-Prediction.mlflow
+        model_evaluation.val_path: 
+          data/processed_osrm/val_processed_osrm.parquet
+    outs:
+    - path: models/metrics/
+      hash: md5
+      md5: 8a923791e12921b209450be199f08869.dir
+      size: 1311
+      nfiles: 5

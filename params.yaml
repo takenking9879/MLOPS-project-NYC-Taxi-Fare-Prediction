@@ -1,0 +1,131 @@
+data_validation:
+  columns_required: ['Trip_Pickup_DateTime', 'Trip_Dropoff_DateTime',
+       'Passenger_Count', 'Trip_Distance', 'Start_Lon', 'Start_Lat', 'End_Lon', 'End_Lat',
+       'Fare_Amt','Total_Amt']
+  columns_num: ['Passenger_Count', 'Trip_Distance', 'Start_Lon', 'Start_Lat', 'End_Lon', 'End_Lat',
+       'Fare_Amt','Total_Amt']
+  columns_str:  ['Trip_Pickup_DateTime', 'Trip_Dropoff_DateTime']
+
+data_ingestion:
+  columns_required: ['Trip_Pickup_DateTime', 'Trip_Dropoff_DateTime',
+       'Passenger_Count', 'Trip_Distance', 'Start_Lon', 'Start_Lat', 'End_Lon', 'End_Lat',
+       'Fare_Amt','Total_Amt']
+  columns_datetime: ['Trip_Pickup_DateTime', 'Trip_Dropoff_DateTime']
+
+data_preprocessing:
+  filters:
+    real_time: True #Decide si eliminar datos con distancias negativas o cero
+    trip_distance: True #Elimina datos con distancias cero
+    real_velocity_limit: 300 #Elimina datos con velocidad de 300km
+    real_time_days: 32 #Elimina datos con viajes de 32 días o más
+    constant_vel_limit: [30,100,56] #Elimina datos de más de 30 min, velocidad de 100km y distancia mayor a 56km
+    distance_limit: 800 #Elimina datos con distancia más corta mayor a 800km
+    haversine_ratio_limit: 80 #Elimina datos donde la distancia haversine es 80x mayor que la real
+    ratio_distance_list:
+      - [40, 0.8]
+      - [15, 5]
+      - [3, 1]
+      - [4, 0.5]
+    #Elimina datos con distancia de haversine mayor X veces la real y si la real es mayor a cierto umbral
+
+  scaler_method: 'standardscaler'
+  imputer_method: 'simpleimputer' 
+
+data_osrm:
+  osrm:
+    add_osrm: True
+    osrm_base: "http://127.0.0.1:5000/route/v1/driving"
+    concurrency: 180
+    chunk_size: 400000
+
+
+model_building:
+  target: "Fare_Amt"
+  train_path: "data/processed_osrm/train_processed_osrm.parquet"
+  meta_train_frac: 0.8
+
+  meta_model:
+    class: "sklearn.linear_model.Ridge"
+    params:
+      alpha: 1.2        # regularización L2 (float > 0)
+      fit_intercept: True  # si quieres ajustar intercept
+      solver: "auto"       # "auto", "svd", "cholesky", "sparse_cg", "sag", "saga"
+      random_state: 42     # reproducibilidad
+      max_iter: 1000       # iteraciones máximas (útil si solver iterativo)
+
+
+  models:
+    lgbm:
+      class: "lightgbm.LGBMRegressor"
+      params:
+        n_estimators: 400
+        learning_rate: 0.08
+        max_depth: 8  
+        random_state: 42
+        objective: "regression"
+        metric: "rmse"
+        verbosity: 1
+        n_jobs: -1
+    xgboost:
+      class: "xgboost.XGBRegressor"
+      params:
+        n_estimators: 550
+        max_depth: 8
+        tree_method: "hist"
+        learning_rate: 0.09
+        subsample: 0.8
+        random_state: 42
+        objective: "reg:squarederror"
+        device: "cuda"
+    catboost:
+      class: "catboost.CatBoostRegressor"
+      params:
+        iterations: 600
+        learning_rate: 0.08
+        depth: 8
+        random_seed: 42
+        task_type: 'GPU'
+        devices: '0'
+        loss_function: "RMSE"
+        eval_metric: "RMSE"
+
+  output_models_dir: "models/saved_models"
+
+model_evaluation:
+  # MLflow / Dagshub
+  tracking_uri: "https://dagshub.com/takenking9879/MLOPS-project-NYC-Taxi-Fare-Prediction.mlflow"
+  experiment_name: "taxi-fare-prediction"
+
+  # Rutas de datos (parquet)
+  val_path: "data/processed_osrm/val_processed_osrm.parquet"
+  test_path: "data/processed_osrm/test_processed_osrm.parquet"
+
+  # Target configurable (puedes poner "Fare_Amt" o "Total_Amt")
+  target: "Fare_Amt"
+
+  # Carpeta donde están los modelos y csv de FI
+  models_dir: "models/saved_models"
+
+  # Selección: pesos (MCDM) — pueden expresarse como fracciones o porcentajes; se normalizan internamente
+  selection:
+    mode: "overall"
+    # Pesos solicitados:
+    # rmse: 50%, mae: 25%, r2: 5%, mape: 10%, medae: 10%
+    weights:
+      rmse: 0.50
+      mae: 0.25
+      r2: 0.05
+      mape: 0.10
+      medae: 0.10
+
+  # Opciones adicionales
+  meta:
+    final_model_name: "final_model.pkl"
+    final_feature_importances_name: "final_model_feature_importances.csv"
+
+  # Logging local
+  output_final_dir: "models/final_model"
+  metrics_dir: "models/metrics"
+
+  # Columnas a dropear si están presentes
+  drop_columns: ["Real_time", "Real_distance"]
