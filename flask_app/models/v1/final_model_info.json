@@ -1,0 +1,8 @@
+{
+  "final_model_name": "xgboost",
+  "selected_model_source": "/home/jorge/DocumentsWLS/Data_Science_Projects/MLOPS-project-NYC-Taxi-Fare-Prediction/models/saved_models/xgboost_model.pkl",
+  "promoted_destination": "/home/jorge/DocumentsWLS/Data_Science_Projects/MLOPS-project-NYC-Taxi-Fare-Prediction/flask_app/models/v1/final_model.pkl",
+  "feature_importances_copied": "/home/jorge/DocumentsWLS/Data_Science_Projects/MLOPS-project-NYC-Taxi-Fare-Prediction/flask_app/models/v1/final_model_feature_importances.csv",
+  "validation_metrics_saved": "/home/jorge/DocumentsWLS/Data_Science_Projects/MLOPS-project-NYC-Taxi-Fare-Prediction/flask_app/models/v1/xgboost_validation_metrics.json",
+  "timestamp": 1759185308
+}

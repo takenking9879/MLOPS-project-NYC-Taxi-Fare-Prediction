@@ -4,6 +4,7 @@ from pathlib import Path
 import glob
 import os
 from src.utils import BaseUtils, create_logger
+import json
 
 logger = create_logger('data_validation', 'validation_errors.log')
 
@@ -63,6 +64,10 @@ def main():
         validation = DataValidation(params_path, original_data_dir)
         validation.check_parquets()
 
+        output_path = os.path.join(root_dir,'outputs/dummy_Validation_complete.json')
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        with open(output_path, "w") as f:
+            json.dump({"status": "ok"}, f)
     except Exception as e:
         validation.logger.error(f"Failed to complete the data validation pipeline: {e}")
         print(f"Error: {e}")

@@ -33,7 +33,7 @@ except Exception:
     xgb = None
 
 # tus utilidades
-from src.utils import create_logger, BaseUtils
+from src.utils import create_logger, BaseUtils, guardar_version_parquets
 
 # Logger conforme pediste
 logger = create_logger("model_evaluation", "logs/model_evaluation.log")
@@ -587,8 +587,12 @@ def main():
     try:
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
         params_path = os.path.join(root, "params.yaml")
+        json_path = os.path.join(root, "flask_app/models/parquet_logs.json")
+        original_path = os.path.join(root, "data/original")
         evaluator = ModelEvaluation(params_path)
         evaluator.evaluate_all_and_select()
+
+        guardar_version_parquets(None, original_path ,json_path, "v1")
     except Exception as e:
         logger.error("Error en main model_evaluation: %s", e)
         raise

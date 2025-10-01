@@ -210,3 +210,4 @@ logs/
 data/original
 data/osrm
 osrm/
+/new_model

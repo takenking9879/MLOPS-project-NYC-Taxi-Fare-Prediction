@@ -124,8 +124,58 @@ model_evaluation:
     final_feature_importances_name: "final_model_feature_importances.csv"
 
   # Logging local
-  output_final_dir: "models/final_model"
+  output_final_dir: "flask_app/models/v1"
   metrics_dir: "models/metrics"
 
   # Columnas a dropear si están presentes
   drop_columns: ["Real_time", "Real_distance"]
+
+continuous_training:
+  retrain: True
+  data_download_ct:
+    year: 2009
+    month: 3
+
+  data_validation_ct:
+    columns_required: ['Trip_Pickup_DateTime', 'Trip_Dropoff_DateTime',
+        'Passenger_Count', 'Trip_Distance', 'Start_Lon', 'Start_Lat', 'End_Lon', 'End_Lat',
+        'Fare_Amt','Total_Amt']
+    columns_num: ['Passenger_Count', 'Trip_Distance', 'Start_Lon', 'Start_Lat', 'End_Lon', 'End_Lat',
+        'Fare_Amt','Total_Amt']
+    columns_str:  ['Trip_Pickup_DateTime', 'Trip_Dropoff_DateTime']
+
+  data_ingestion_ct:
+    columns_required: ['Trip_Pickup_DateTime', 'Trip_Dropoff_DateTime',
+        'Passenger_Count', 'Trip_Distance', 'Start_Lon', 'Start_Lat', 'End_Lon', 'End_Lat',
+        'Fare_Amt','Total_Amt']
+    columns_datetime: ['Trip_Pickup_DateTime', 'Trip_Dropoff_DateTime']
+
+  data_preprocessing_ct:
+    filters:
+      real_time: True #Decide si eliminar datos con distancias negativas o cero
+      trip_distance: True #Elimina datos con distancias cero
+      real_velocity_limit: 300 #Elimina datos con velocidad de 300km
+      real_time_days: 32 #Elimina datos con viajes de 32 días o más
+      constant_vel_limit: [30,100,56] #Elimina datos de más de 30 min, velocidad de 100km y distancia mayor a 56km
+      distance_limit: 800 #Elimina datos con distancia más corta mayor a 800km
+      haversine_ratio_limit: 80 #Elimina datos donde la distancia haversine es 80x mayor que la real
+      ratio_distance_list:
+        - [40, 0.8]
+        - [15, 5]
+        - [3, 1]
+        - [4, 0.5]
+      #Elimina datos con distancia de haversine mayor X veces la real y si la real es mayor a cierto umbral
+    
+  data_osrm_ct:
+    osrm:
+      add_osrm: True
+      osrm_base: "http://127.0.0.1:5000/route/v1/driving"
+      concurrency: 200
+      chunk_size: 400000
+
+  model_retraining:
+    target: "Fare_Amt"
+
+  model_promotion:
+    target: "Fare_Amt"
+    metric_to_compare: "rmse" #No soporta R^2 porque no es muy útil como medida para decidir 

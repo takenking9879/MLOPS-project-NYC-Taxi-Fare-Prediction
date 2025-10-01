@@ -1,11 +1,13 @@
 import logging
 import yaml
 import pandas as pd
+import os
+import json
+import re
 
 def create_logger(name: str, log_file: str = None) -> logging.Logger:
     """
     Crea y configura un logger con consola y archivo opcional.
-W
     """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
@@ -28,6 +30,43 @@ W
 
     return logger
 
+def guardar_version_parquets(self, ruta_parquets, ruta_json, version):
+    """
+    Guarda en un JSON los .parquet de la carpeta indicada bajo una versión dada.
+    ruta_parquets : str
+        Carpeta donde están los .parquet (ej. "./data/original").
+    ruta_json : str
+        Ruta del JSON donde se guardará (ej. "./logs/used_parquets.json").
+    version : str
+        Nombre de la versión (ej. "v1").
+    """
+    # Obtener todos los archivos parquet en la carpeta
+    archivos = [f for f in os.listdir(ruta_parquets) if f.endswith(".parquet")]
+
+    # Extraer año-mes (YYYY-MM) de cada archivo
+    archivos = [
+        re.search(r"(\d{4})-(\d{2})", f).group(0)
+        for f in archivos if re.search(r"(\d{4})-(\d{2})", f)
+    ]
+
+    # Ordenar cronológicamente (como strings funciona bien para YYYY-MM)
+    archivos = sorted(archivos)
+
+    # Si ya existe el JSON, lo cargamos
+    if os.path.exists(ruta_json):
+        with open(ruta_json, "r") as f:
+            data = json.load(f)
+    else:
+        data = {}
+
+    # Actualizar o crear la versión
+    data[version] = archivos
+
+    # Guardar el JSON actualizado
+    with open(ruta_json, "w") as f:
+        json.dump(data, f, indent=4)
+
+    print(f"✅ Guardados {len(archivos)} archivos en {ruta_json} bajo '{version}'")
 
 class BaseUtils:
     """

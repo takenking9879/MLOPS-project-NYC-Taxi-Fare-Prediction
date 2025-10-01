@@ -8,7 +8,7 @@ import sys
 import gc
 import tempfile
 
-async def fetch_osrm(session, url, max_retries=4, base_delay=0.5):
+async def fetch_osrm(session, url, max_retries=6, base_delay=0.4):
     for attempt in range(max_retries):
         try:
             async with session.get(url, timeout=10) as r:

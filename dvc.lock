@@ -5,12 +5,12 @@ stages:
     deps:
     - path: src/data/data_validation.py
       hash: md5
-      md5: 49a7cafe31fea44bf915f5052fcc704d
-      size: 2969
+      md5: c22ed8ca8c2bc71f425b486185ddd672
+      size: 3217
     - path: src/utils.py
       hash: md5
-      md5: f1691055540956d368120a3ed81abac8
-      size: 2391
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
     params:
       params.yaml:
         data_validation.columns_num:
@@ -36,17 +36,26 @@ stages:
         data_validation.columns_str:
         - Trip_Pickup_DateTime
         - Trip_Dropoff_DateTime
+    outs:
+    - path: outputs/dummy_Validation_complete.json
+      hash: md5
+      md5: 0d7ac2dec5f281678f65dcf7fe4681ba
+      size: 16
   data_ingestion:
     cmd: python3 src/data/data_ingestion.py
     deps:
+    - path: outputs/dummy_Validation_complete.json
+      hash: md5
+      md5: 0d7ac2dec5f281678f65dcf7fe4681ba
+      size: 16
     - path: src/data/data_ingestion.py
       hash: md5
       md5: c7051dc4c4d549ee0930851fd5ae5895
       size: 7817
     - path: src/utils.py
       hash: md5
-      md5: f1691055540956d368120a3ed81abac8
-      size: 2391
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
     params:
       params.yaml:
         data_ingestion.columns_datetime:
@@ -90,8 +99,8 @@ stages:
       size: 16743
     - path: src/utils.py
       hash: md5
-      md5: f1691055540956d368120a3ed81abac8
-      size: 2391
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
     params:
       params.yaml:
         data_preprocessing.filters:
@@ -141,14 +150,14 @@ stages:
       hash: md5
       md5: 91407136c282579686aeaacf4957c402
       size: 8269
-    - path: src/osrm.py
+    - path: src/osrm_console.py
       hash: md5
-      md5: a437a50a48fc586906b1b0744aaa8b96
-      size: 6455
+      md5: 6b1a2af73ba7e1f30df7f9403f4b97cf
+      size: 7076
     - path: src/utils.py
       hash: md5
-      md5: f1691055540956d368120a3ed81abac8
-      size: 2391
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
     params:
       params.yaml:
         data_osrm.osrm:
@@ -175,8 +184,8 @@ stages:
       size: 3671
     - path: src/utils.py
       hash: md5
-      md5: f1691055540956d368120a3ed81abac8
-      size: 2391
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
     params:
       params.yaml:
         model_building.models.lgbm:
@@ -194,8 +203,8 @@ stages:
     outs:
     - path: models/saved_models/lgbm_model.pkl
       hash: md5
-      md5: f87313f101f7e2b70d282c21c67f3564
-      size: 1278302
+      md5: 73758243c247856d9076a559d7449803
+      size: 1278298
     - path: models/saved_models/lgbm_model_feature_importances.csv
       hash: md5
       md5: ee3a9ae613f4332db50ffc11cd42f937
@@ -217,8 +226,8 @@ stages:
       size: 3475
     - path: src/utils.py
       hash: md5
-      md5: f1691055540956d368120a3ed81abac8
-      size: 2391
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
     params:
       params.yaml:
         model_building.models.xgboost:
@@ -259,8 +268,8 @@ stages:
       size: 7105
     - path: src/utils.py
       hash: md5
-      md5: f1691055540956d368120a3ed81abac8
-      size: 2391
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
     params:
       params.yaml:
         model_building.models.catboost:
@@ -278,12 +287,12 @@ stages:
     outs:
     - path: models/saved_models/catboost_model.cbm
       hash: md5
-      md5: 9364f63bfd198f31b72f642697a63d2f
-      size: 2531176
+      md5: b2a870c734e67be86238cc04760c5f6f
+      size: 2531064
     - path: models/saved_models/catboost_model_feature_importances.csv
       hash: md5
-      md5: 7d5b8de19f87845c22b6b7926fc9387c
-      size: 1031
+      md5: e5c5bb2684dce35263c68b9faa534961
+      size: 1029
     - path: models/saved_models/catboost_model_meta.json
       hash: md5
       md5: 7d97780fbecbd6e4beb9bf85bb2da45d
@@ -297,12 +306,12 @@ stages:
       size: 2221948612
     - path: models/saved_models/catboost_model.cbm
       hash: md5
-      md5: 9364f63bfd198f31b72f642697a63d2f
-      size: 2531176
+      md5: b2a870c734e67be86238cc04760c5f6f
+      size: 2531064
     - path: models/saved_models/lgbm_model.pkl
       hash: md5
-      md5: f87313f101f7e2b70d282c21c67f3564
-      size: 1278302
+      md5: 73758243c247856d9076a559d7449803
+      size: 1278298
     - path: models/saved_models/xgboost_model.pkl
       hash: md5
       md5: c9c03d3836ef08a152b62d09ec971516
@@ -313,8 +322,8 @@ stages:
       size: 6475
     - path: src/utils.py
       hash: md5
-      md5: f1691055540956d368120a3ed81abac8
-      size: 2391
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
     params:
       params.yaml:
         model_building.meta_model:
@@ -330,11 +339,11 @@ stages:
     outs:
     - path: models/saved_models/stacking_meta_coefs.csv
       hash: md5
-      md5: d64f813235008fb3d76e520e5d25e0a7
-      size: 143
+      md5: 1ba345e44948880ed843bdbc4cac23a6
+      size: 145
     - path: models/saved_models/stacking_meta_model.pkl
       hash: md5
-      md5: 544b085e527a9c0a892f5403ace766b8
+      md5: ce44be2b24ed8e8e7a79fbfefebed6cf
       size: 881
   model_evaluation:
     cmd: python3 src/model/model_evaluation.py
@@ -349,20 +358,20 @@ stages:
       size: 590924058
     - path: models/saved_models/catboost_model.cbm
       hash: md5
-      md5: 9364f63bfd198f31b72f642697a63d2f
-      size: 2531176
+      md5: b2a870c734e67be86238cc04760c5f6f
+      size: 2531064
     - path: models/saved_models/catboost_model_feature_importances.csv
       hash: md5
-      md5: 7d5b8de19f87845c22b6b7926fc9387c
-      size: 1031
+      md5: e5c5bb2684dce35263c68b9faa534961
+      size: 1029
     - path: models/saved_models/catboost_model_meta.json
       hash: md5
       md5: 7d97780fbecbd6e4beb9bf85bb2da45d
       size: 605
     - path: models/saved_models/lgbm_model.pkl
       hash: md5
-      md5: f87313f101f7e2b70d282c21c67f3564
-      size: 1278302
+      md5: 73758243c247856d9076a559d7449803
+      size: 1278298
     - path: models/saved_models/lgbm_model_feature_importances.csv
       hash: md5
       md5: ee3a9ae613f4332db50ffc11cd42f937
@@ -373,11 +382,11 @@ stages:
       size: 587
     - path: models/saved_models/stacking_meta_coefs.csv
       hash: md5
-      md5: d64f813235008fb3d76e520e5d25e0a7
-      size: 143
+      md5: 1ba345e44948880ed843bdbc4cac23a6
+      size: 145
     - path: models/saved_models/stacking_meta_model.pkl
       hash: md5
-      md5: 544b085e527a9c0a892f5403ace766b8
+      md5: ce44be2b24ed8e8e7a79fbfefebed6cf
       size: 881
     - path: models/saved_models/xgboost_model.pkl
       hash: md5
@@ -393,18 +402,18 @@ stages:
       size: 611
     - path: src/model/model_evaluation.py
       hash: md5
-      md5: cc8e24da6faf720876ee0048b4bb6eac
-      size: 25650
+      md5: 33ff3c439cd1c4cb7f56f66d7fb21d2b
+      size: 25885
     - path: src/utils.py
       hash: md5
-      md5: f1691055540956d368120a3ed81abac8
-      size: 2391
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
     params:
       params.yaml:
         model_evaluation.experiment_name: taxi-fare-prediction
         model_evaluation.metrics_dir: models/metrics
         model_evaluation.models_dir: models/saved_models
-        model_evaluation.output_final_dir: models/final_model
+        model_evaluation.output_final_dir: flask_app/models/v1
         model_evaluation.selection:
           mode: overall
           weights:
@@ -423,6 +432,262 @@ stages:
     outs:
     - path: models/metrics/
       hash: md5
-      md5: 8a923791e12921b209450be199f08869.dir
-      size: 1311
+      md5: 51fa3abeadb6428bb45f61dd22789aa8.dir
+      size: 1307
       nfiles: 5
+  data_download:
+    cmd: python3 src/CT/data_download.py
+    deps:
+    - path: src/CT/data_download.py
+      hash: md5
+      md5: 8861dae49b5a84da8b77acbc699024e5
+      size: 3115
+    - path: src/utils.py
+      hash: md5
+      md5: f1691055540956d368120a3ed81abac8
+      size: 2391
+    params:
+      params.yaml:
+        continous_training.data_download.month: 3
+        continous_training.data_download.year: 2009
+    outs:
+    - path: new_data/original/
+      hash: md5
+      md5: d751713988987e9331980363e24189ce.dir
+      size: 0
+      nfiles: 0
+  data_validation_ct:
+    cmd: python3 src/CT/data/data_validation_ct.py
+    deps:
+    - path: new_data/original/
+      hash: md5
+      md5: 08b7d50e2a4904cdc8a68c809c461b93.dir
+      size: 1456048316
+      nfiles: 3
+    - path: src/CT/data/data_validation_ct.py
+      hash: md5
+      md5: e8eb35113b051614a397f630ee4f4546
+      size: 2177
+    - path: src/utils.py
+      hash: md5
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
+    params:
+      params.yaml:
+        continuous_training.data_validation_ct.columns_num:
+        - Passenger_Count
+        - Trip_Distance
+        - Start_Lon
+        - Start_Lat
+        - End_Lon
+        - End_Lat
+        - Fare_Amt
+        - Total_Amt
+        continuous_training.data_validation_ct.columns_required:
+        - Trip_Pickup_DateTime
+        - Trip_Dropoff_DateTime
+        - Passenger_Count
+        - Trip_Distance
+        - Start_Lon
+        - Start_Lat
+        - End_Lon
+        - End_Lat
+        - Fare_Amt
+        - Total_Amt
+        continuous_training.data_validation_ct.columns_str:
+        - Trip_Pickup_DateTime
+        - Trip_Dropoff_DateTime
+        continuous_training.retrain: true
+    outs:
+    - path: outputs/dummy_ValidationCT_complete.json
+      hash: md5
+      md5: 0d7ac2dec5f281678f65dcf7fe4681ba
+      size: 16
+  data_download_ct:
+    cmd: python3 src/CT/data/data_download_ct.py
+    deps:
+    - path: models/metrics/
+      hash: md5
+      md5: 51fa3abeadb6428bb45f61dd22789aa8.dir
+      size: 1307
+      nfiles: 5
+    - path: src/CT/data/data_download_ct.py
+      hash: md5
+      md5: 98781eb79ab87cc3efe251517efae1c4
+      size: 3208
+    - path: src/utils.py
+      hash: md5
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
+    params:
+      params.yaml:
+        continuous_training.data_download_ct.month: 3
+        continuous_training.data_download_ct.year: 2009
+        continuous_training.retrain: true
+    outs:
+    - path: new_data/original/
+      hash: md5
+      md5: 08b7d50e2a4904cdc8a68c809c461b93.dir
+      size: 1456048316
+      nfiles: 3
+  data_ingestion_ct:
+    cmd: python3 src/CT/data/data_ingestion_ct.py
+    deps:
+    - path: outputs/dummy_ValidationCT_complete.json
+      hash: md5
+      md5: 0d7ac2dec5f281678f65dcf7fe4681ba
+      size: 16
+    - path: src/CT/data/data_ingestion_ct.py
+      hash: md5
+      md5: ebd5901d66dfacb70c345f2b9fe4b542
+      size: 4003
+    - path: src/utils.py
+      hash: md5
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
+    params:
+      params.yaml:
+        continuous_training.data_ingestion_ct.columns_datetime:
+        - Trip_Pickup_DateTime
+        - Trip_Dropoff_DateTime
+        continuous_training.data_ingestion_ct.columns_required:
+        - Trip_Pickup_DateTime
+        - Trip_Dropoff_DateTime
+        - Passenger_Count
+        - Trip_Distance
+        - Start_Lon
+        - Start_Lat
+        - End_Lon
+        - End_Lat
+        - Fare_Amt
+        - Total_Amt
+        continuous_training.retrain: true
+    outs:
+    - path: new_data/raw/
+      hash: md5
+      md5: 8cca1997ed0d38841d6158f35880a3eb.dir
+      size: 1026186555
+      nfiles: 3
+  data_preprocessing_ct:
+    cmd: python3 src/CT/data/data_preprocessing_ct.py
+    deps:
+    - path: new_data/raw/
+      hash: md5
+      md5: 8cca1997ed0d38841d6158f35880a3eb.dir
+      size: 1026186555
+      nfiles: 3
+    - path: src/CT/data/data_preprocessing_ct.py
+      hash: md5
+      md5: 4eaa95f503b4753e6a48d8e128e7f94a
+      size: 6102
+    - path: src/utils.py
+      hash: md5
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
+    params:
+      params.yaml:
+        continuous_training.data_preprocessing_ct.filters:
+          real_time: true
+          trip_distance: true
+          real_velocity_limit: 300
+          real_time_days: 32
+          constant_vel_limit:
+          - 30
+          - 100
+          - 56
+          distance_limit: 800
+          haversine_ratio_limit: 80
+          ratio_distance_list:
+          - - 40
+            - 0.8
+          - - 15
+            - 5
+          - - 3
+            - 1
+          - - 4
+            - 0.5
+        continuous_training.retrain: true
+    outs:
+    - path: new_data/processed/
+      hash: md5
+      md5: 1783ff8e75bbdf1d88823028b78006a5.dir
+      size: 3000576762
+      nfiles: 3
+  data_osrm_ct:
+    cmd: python3 src/CT/data/data_osrm_ct.py
+    deps:
+    - path: new_data/processed/
+      hash: md5
+      md5: 1783ff8e75bbdf1d88823028b78006a5.dir
+      size: 3000576762
+      nfiles: 3
+    - path: src/CT/data/data_osrm_ct.py
+      hash: md5
+      md5: 01d788581bd94cfcfda26bfe85c733d7
+      size: 5489
+    - path: src/osrm_console.py
+      hash: md5
+      md5: 6b1a2af73ba7e1f30df7f9403f4b97cf
+      size: 7076
+    - path: src/utils.py
+      hash: md5
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
+    params:
+      params.yaml:
+        continuous_training.data_osrm_ct.osrm:
+          add_osrm: true
+          osrm_base: http://127.0.0.1:5000/route/v1/driving
+          concurrency: 200
+          chunk_size: 400000
+    outs:
+    - path: new_data/processed_osrm/
+      hash: md5
+      md5: 12fc756e6f17b72663eb40bd4d2f204a.dir
+      size: 3534945822
+      nfiles: 3
+  model_retraining:
+    cmd: python3 src/CT/model/model_retraining.py
+    deps:
+    - path: new_data/processed_osrm/
+      hash: md5
+      md5: 12fc756e6f17b72663eb40bd4d2f204a.dir
+      size: 3534945822
+      nfiles: 3
+    - path: src/CT/model/model_retraining.py
+      hash: md5
+      md5: 477259342e97ceed43e0c1ebb590f3e5
+      size: 5798
+    - path: src/utils.py
+      hash: md5
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
+    params:
+      params.yaml:
+        continuous_training.model_retraining.target: Fare_Amt
+    outs:
+    - path: new_model/
+      hash: md5
+      md5: 6a949ae69fe49f06b4f402020390abbd.dir
+      size: 8700114
+      nfiles: 3
+  model_promotion:
+    cmd: python3 src/CT/model/model_promotion.py
+    deps:
+    - path: new_model/
+      hash: md5
+      md5: 6a949ae69fe49f06b4f402020390abbd.dir
+      size: 8700114
+      nfiles: 3
+    - path: src/CT/model/model_promotion.py
+      hash: md5
+      md5: 1e452a22b1d35f37a3b73e55ff013108
+      size: 8569
+    - path: src/utils.py
+      hash: md5
+      md5: 86cb617a88a0a0103e71212cd04402ba
+      size: 3700
+    params:
+      params.yaml:
+        continuous_training.model_promotion.metric_to_compare: rmse
+        continuous_training.model_promotion.target: Fare_Amt
