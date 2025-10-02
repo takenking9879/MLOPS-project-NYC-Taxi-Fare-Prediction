@@ -215,6 +215,8 @@ stages:
     - new_data/processed_osrm/
     params:
     - continuous_training.model_retraining.target
+    - continuous_training.model_retraining.oof_folds
+    - continuous_training.model_retraining.meta_alpha
     outs:
     - new_model/
   
@@ -227,3 +229,4 @@ stages:
     params:
     - continuous_training.model_promotion.target
     - continuous_training.model_promotion.metric_to_compare
+    - continuous_training.model_promotion.evaluate_all_in_test
