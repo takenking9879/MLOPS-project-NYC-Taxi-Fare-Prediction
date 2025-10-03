@@ -123,8 +123,3 @@ jobs:
           echo "Running: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml up -d --remove-orphans"
           $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml up -d --remove-orphans
 
-      - name: 
-        Debug: show running containers
-        run: |
-          docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'
-
