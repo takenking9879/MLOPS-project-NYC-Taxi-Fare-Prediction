@@ -29,7 +29,7 @@ jobs:
     name: Build & Push Flask Image to ECR
     needs: integration
     runs-on: ubuntu-latest
-    # expose job output 'image' from the step below
+    # exponemos este output para que deploy lo use
     outputs:
       image: ${{ steps.build-image.outputs.image }}
     steps:
@@ -43,11 +43,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to ECR
+      - name: Login to ECR (for build)
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and set image output
+      - name: Build, tag and push image (and set step output)
         id: build-image
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
@@ -57,7 +57,7 @@ jobs:
           echo "Building image $IMAGE"
           docker build --pull -f Dockerfile.flask -t "$IMAGE" .
           docker push "$IMAGE"
-          # set step output (modern way)
+          # exportar el output del step (modern way)
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
   deploy:
@@ -74,7 +74,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR (on runner)
+      - name: Login to ECR (on runner for docker pull)
         id: login-ecr-runner
         uses: aws-actions/amazon-ecr-login@v1
 
@@ -89,7 +89,7 @@ jobs:
           # exportar variable que usa docker-compose.prod.yml (image: ${FLASK_IMAGE})
           export FLASK_IMAGE="$IMAGE"
 
-          # Si tu self-hosted usa 'docker compose' (v2) usa 'docker compose' en lugar de 'docker-compose'
+          # elegir docker-compose command (v1 o v2)
           if command -v docker-compose >/dev/null 2>&1; then
             DOCKER_COMPOSE_CMD="docker-compose"
           else
