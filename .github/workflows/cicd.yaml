@@ -16,12 +16,9 @@ jobs:
     name: Continuous Integration
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
       - name: Lint code
         run: echo "Linting repository"
-
       - name: Run unit tests
         run: echo "Running unit tests"
 
@@ -29,25 +26,20 @@ jobs:
     name: Build & Push Flask Image to ECR
     needs: integration
     runs-on: ubuntu-latest
-    # exponemos este output para que deploy lo use
     outputs:
       image: ${{ steps.build-image.outputs.image }}
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Configure AWS credentials (for build)
+      - uses: actions/checkout@v3
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to ECR (for build)
+      - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build, tag and push image (and set step output)
+      - name: Build, tag and push image
         id: build-image
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
@@ -57,45 +49,37 @@ jobs:
           echo "Building image $IMAGE"
           docker build --pull -f Dockerfile.flask -t "$IMAGE" .
           docker push "$IMAGE"
-          # exportar el output del step (modern way)
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
   deploy:
     needs: build-and-push-ecr-image
     runs-on: self-hosted
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Configure AWS credentials (on runner)
+      - uses: actions/checkout@v3
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to ECR (on runner for docker pull)
-        id: login-ecr-runner
+      - name: Login to ECR on runner
         uses: aws-actions/amazon-ecr-login@v1
-
       - name: Pull & up compose
         run: |
-          # imagen producida por job previo
           IMAGE=${{ needs.build-and-push-ecr-image.outputs.image }}
+          if [ -z "$IMAGE" ]; then
+            echo "ERROR: FLASK_IMAGE is empty. Exiting."
+            exit 1
+          fi
 
-          # asegurarse de estar en el repo checkoutado
           cd "${{ github.workspace }}"
-
-          # exportar variable que usa docker-compose.prod.yml (image: ${FLASK_IMAGE})
           export FLASK_IMAGE="$IMAGE"
 
-          # elegir docker-compose command (v1 o v2)
           if command -v docker-compose >/dev/null 2>&1; then
             DOCKER_COMPOSE_CMD="docker-compose"
           else
             DOCKER_COMPOSE_CMD="docker compose"
           fi
 
-          # tirar la imagen y levantar containers
           $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml pull flask
           $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml up -d --remove-orphans
