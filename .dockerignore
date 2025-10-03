@@ -1,0 +1,41 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+
+# Jupyter / VSCode
+.ipynb_checkpoints
+.vscode
+*.swp
+
+# Datos grandes
+data/
+new_data/
+CM_data/
+USA_polygon/
+outputs/
+osrm/
+
+# Archivos auxiliares
+notebooks/
+quitar_labels.py
+
+# Modelos entrenados
+models/
+new_model/
+logs/
+*.log
+
+# Caches
+*.cache
+.dvc
+.vscode
+# Terraform
+terraform/
+# CatBoost training logs
+catboost_info/
+
+#Git
+.git
+.gitignore

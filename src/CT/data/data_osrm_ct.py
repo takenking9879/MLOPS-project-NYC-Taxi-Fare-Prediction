@@ -96,7 +96,7 @@ def main():
         preprocessing = DataOSRMCT(params_path,processed_data_dir,processed_osrm_data_dir, artifacts_dir)
         preprocessing.add_features()
 
-        remove_temp_csv = '../../../new_data/osrm/osrm_routes.csv'
+        remove_temp_csv = '/home/jorge/DocumentsWLS/Data_Science_Projects/MLOPS-project-NYC-Taxi-Fare-Prediction/new_data/osrm/osrm_routes.csv'
         if os.path.exists(remove_temp_csv):
             os.remove()
             print(f"{remove_temp_csv} eliminado correctamente")

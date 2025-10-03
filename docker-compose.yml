@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  osrm:
+    image: osrm/osrm-backend:latest
+    container_name: osrm
+    # Monta la carpeta con tus .osrm/.osrm.* ya generados
+    volumes:
+      - ./osrm:/data
+    # Usa tu .osrm ya generado
+    command: ["osrm-routed", "--algorithm", "mld", "/data/new-york-250917.osrm"]
+    ports:
+      - "5000:5000"
+
+  flask:
+    build:
+      context: .
+      dockerfile: Dockerfile.flask
+    container_name: nyc-flask
+    # Montar carpetas necesarias para tu app
+    volumes:
+      - ./artifacts:/app/artifacts                 # scalers, imputers, etc
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=production
+      - OSRM_BASE=http://osrm:5000/route/v1/driving

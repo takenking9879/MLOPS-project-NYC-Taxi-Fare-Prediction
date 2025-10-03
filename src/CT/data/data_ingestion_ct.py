@@ -16,6 +16,61 @@ class DataIngestionCT(DataIngestion):
         self.retrain = self.params["retrain"]
         self.params = self.params["data_ingestion_ct"]
 
+    def load_parquet(self, path: str, columns: list) -> pd.DataFrame:
+        try:
+            df = pd.read_parquet(path, columns=columns)
+            column_mappings = {
+                "Trip_Pickup_DateTime": [
+                    "pickup_datetime", "tpep_pickup_datetime", "lpep_pickup_datetime",
+                    "Trip_Pickup_DateTime", "Pickup_DateTime"
+                ],
+                "Trip_Dropoff_DateTime": [
+                    "dropoff_datetime", "tpep_dropoff_datetime", "lpep_dropoff_datetime",
+                    "Trip_Dropoff_DateTime", "Dropoff_DateTime"
+                ],
+                "Passenger_Count": [
+                    "passenger_count", "Passenger_count", "Passenger_Count",
+                    "passengers", "num_passengers"
+                ],
+                "Trip_Distance": [
+                    "trip_distance", "Trip_distance", "Trip_Distance",
+                    "distance", "distance_miles", "trip_miles"
+                ],
+                "Start_Lon": [
+                    "pickup_longitude", "Start_Lon", "pickup_long", "pickup_lon",
+                    "start_longitude"
+                ],
+                "Start_Lat": [
+                    "pickup_latitude", "Start_Lat", "pickup_lat", "start_latitude"
+                ],
+                "End_Lon": [
+                    "dropoff_longitude", "End_Lon", "dropoff_long", "dropoff_lon",
+                    "end_longitude"
+                ],
+                "End_Lat": [
+                    "dropoff_latitude", "End_Lat", "dropoff_lat", "end_latitude"
+                ],
+                "Fare_Amt": [
+                    "fare_amount", "Fare_Amt", "fare", "fare_amt", "base_fare"
+                ],
+                "Total_Amt": [
+                    "total_amount", "Total_Amt", "total", "total_fare", "payment_total"
+                ]
+            }
+            for standard_name, variants in column_mappings.items():
+                for var in variants:
+                    if var in df.columns:
+                        df = df.rename(columns={var: standard_name})
+                        break
+            self.logger.debug('Parquet file retrived from %s', path)
+            return df
+        except FileNotFoundError:
+            self.logger.error('File not found: %s', path)
+            raise
+        except Exception as e:
+            self.logger.error('Unexpected error: %s', e)
+            raise
+
     def split_data(self):
         try:
             os.makedirs(self.raw_data_dir, exist_ok=True)

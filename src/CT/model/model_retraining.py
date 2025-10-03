@@ -155,7 +155,7 @@ class RetrainingCT(BaseUtils):
                 xgb_fold = xgb.XGBRegressor(**params)
                 xgb_fold.fit(X_tr, y_tr)
                 oof_new[val_idx] = xgb_fold.predict(X_val_oof)
-
+                del X_tr, y_tr
                 del xgb_fold
                 gc.collect()
 
@@ -172,7 +172,8 @@ class RetrainingCT(BaseUtils):
             self.logger.info("Entrenando XGB final sobre todo el train...")
             xgb_final = xgb.XGBRegressor(**params)
             xgb_final.fit(X_train, y_train)
-
+            del X_train
+            del y_train
             # ----------------- save models -----------------
             final_path = os.path.join(self.output_dir, "final_model.pkl")
             joblib.dump(xgb_final, final_path)
@@ -211,7 +212,7 @@ class RetrainingCT(BaseUtils):
 
             preds_new = xgb_new.predict(X_val)
             preds_old = xgb_old.predict(X_val) if xgb_old is not None else None
-
+            del X_val
             preds_stack = None
             if preds_old is not None and meta_model is not None:
                 stack_input = np.column_stack([preds_old, preds_new])
@@ -234,6 +235,7 @@ class RetrainingCT(BaseUtils):
             raise
 
 def main():
+    gc.collect()
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
     params = os.path.join(root, "params.yaml")
     processed_dir = os.path.join(root, "new_data/processed_osrm")

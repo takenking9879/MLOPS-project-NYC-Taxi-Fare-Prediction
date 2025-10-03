@@ -1,0 +1,19 @@
+# Dockerfile.flask
+FROM python:3.11-slim-buster
+
+WORKDIR /app
+
+# Copiar solo la carpeta de la app
+COPY flask_app/ /app/flask_app/
+
+# Copiar requirements
+COPY requirements_prod.txt /app/requirements_prod.txt
+
+# Instalar dependencias
+RUN pip install --no-cache-dir -r requirements_prod.txt
+
+# Puerto que usará gunicorn
+EXPOSE 8000
+
+# Comando por defecto
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "flask_app.app:app", "--workers", "3", "--threads", "2"]

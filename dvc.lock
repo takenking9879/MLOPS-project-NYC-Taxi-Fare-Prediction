@@ -539,8 +539,8 @@ stages:
       size: 16
     - path: src/CT/data/data_ingestion_ct.py
       hash: md5
-      md5: ebd5901d66dfacb70c345f2b9fe4b542
-      size: 4003
+      md5: fe873ad67bebc65408fa24cb679a9c15
+      size: 6404
     - path: src/utils.py
       hash: md5
       md5: 86cb617a88a0a0103e71212cd04402ba
@@ -565,16 +565,16 @@ stages:
     outs:
     - path: new_data/raw/
       hash: md5
-      md5: 8cca1997ed0d38841d6158f35880a3eb.dir
-      size: 1026186555
+      md5: a0b027c5a4d82e1cffda4a1dac51b8c0.dir
+      size: 1025486957
       nfiles: 3
   data_preprocessing_ct:
     cmd: python3 src/CT/data/data_preprocessing_ct.py
     deps:
     - path: new_data/raw/
       hash: md5
-      md5: 8cca1997ed0d38841d6158f35880a3eb.dir
-      size: 1026186555
+      md5: a0b027c5a4d82e1cffda4a1dac51b8c0.dir
+      size: 1025486957
       nfiles: 3
     - path: src/CT/data/data_preprocessing_ct.py
       hash: md5
@@ -610,21 +610,21 @@ stages:
     outs:
     - path: new_data/processed/
       hash: md5
-      md5: 1783ff8e75bbdf1d88823028b78006a5.dir
-      size: 3000576762
+      md5: 493999eac4f982cb036a7c45ba8f6c8c.dir
+      size: 3002978299
       nfiles: 3
   data_osrm_ct:
     cmd: python3 src/CT/data/data_osrm_ct.py
     deps:
     - path: new_data/processed/
       hash: md5
-      md5: 1783ff8e75bbdf1d88823028b78006a5.dir
-      size: 3000576762
+      md5: 493999eac4f982cb036a7c45ba8f6c8c.dir
+      size: 3002978299
       nfiles: 3
     - path: src/CT/data/data_osrm_ct.py
       hash: md5
-      md5: 01d788581bd94cfcfda26bfe85c733d7
-      size: 5489
+      md5: 7139b08a1a1469e1e5c3c8ebb7dc70ee
+      size: 5566
     - path: src/osrm_console.py
       hash: md5
       md5: 6b1a2af73ba7e1f30df7f9403f4b97cf
@@ -643,21 +643,21 @@ stages:
     outs:
     - path: new_data/processed_osrm/
       hash: md5
-      md5: 12fc756e6f17b72663eb40bd4d2f204a.dir
-      size: 3534945822
+      md5: e58789b07dc75b2e781d8e2294dc49e1.dir
+      size: 3537332525
       nfiles: 3
   model_retraining:
     cmd: python3 src/CT/model/model_retraining.py
     deps:
     - path: new_data/processed_osrm/
       hash: md5
-      md5: 12fc756e6f17b72663eb40bd4d2f204a.dir
-      size: 3534945822
+      md5: e58789b07dc75b2e781d8e2294dc49e1.dir
+      size: 3537332525
       nfiles: 3
     - path: src/CT/model/model_retraining.py
       hash: md5
-      md5: 0074182c81b18e382fd2eb3867e109c4
-      size: 9864
+      md5: eaa7e80bcb5df6f090265bfb8a0a0ca9
+      size: 9979
     - path: src/utils.py
       hash: md5
       md5: 86cb617a88a0a0103e71212cd04402ba
@@ -670,21 +670,21 @@ stages:
     outs:
     - path: new_model/
       hash: md5
-      md5: 45c1b6adbec6cecbc1aa7dd72db3297b.dir
-      size: 8700255
+      md5: 04b232cb77c31fc61505681fc6b39937.dir
+      size: 8690531
       nfiles: 3
   model_promotion:
     cmd: python3 src/CT/model/model_promotion.py
     deps:
     - path: new_model/
       hash: md5
-      md5: 45c1b6adbec6cecbc1aa7dd72db3297b.dir
-      size: 8700255
+      md5: 04b232cb77c31fc61505681fc6b39937.dir
+      size: 8690531
       nfiles: 3
     - path: src/CT/model/model_promotion.py
       hash: md5
-      md5: 441a2ca277dc3d5c4e4b95f4c6f251e7
-      size: 17800
+      md5: 52152dda0631a303e8a808467a5c1c36
+      size: 17799
     - path: src/utils.py
       hash: md5
       md5: 86cb617a88a0a0103e71212cd04402ba

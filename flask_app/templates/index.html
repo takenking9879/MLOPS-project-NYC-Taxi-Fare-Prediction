@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NYC Taxi Fare Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+      body { background: #f6f8fa; }
+      .card-hero { border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+      #map { height: 300px; border-radius: 8px; }
+      .big-result { font-size: 2.8rem; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <div class="card card-hero p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3>Calculadora de tarifa - NYC Taxi</h3>
+              <small class="text-muted">Selecciona versión y completa los datos</small>
+            </div>
+
+            <form method="POST" action="{{ url_for('predict') }}" id="frmPredict">
+              <div class="row gy-2">
+                <div class="col-md-4">
+                  <label class="form-label">Versión del modelo</label>
+                  <select name="version" class="form-select">
+                    {% for v in versions %}
+                      <option value="{{ v }}">{{ v }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="col-md-8">
+                  <label class="form-label">Origen (dirección o coordenadas)</label>
+                  <div class="input-group mb-2">
+                    <input id="origin_text" name="origin_text" class="form-control" placeholder="Ej. 350 5th Ave, New York" />
+                    <button type="button" id="geocode_origin" class="btn btn-outline-primary">Buscar</button>
+                  </div>
+                  <div class="row gx-2">
+                    <div class="col-6"><input id="origin_lat" name="origin_lat" placeholder="Lat" class="form-control" /></div>
+                    <div class="col-6"><input id="origin_lon" name="origin_lon" placeholder="Lon" class="form-control" /></div>
+                  </div>
+                </div>
+
+                <div class="col-md-8">
+                  <label class="form-label">Destino (dirección o coordenadas)</label>
+                  <div class="input-group mb-2">
+                    <input id="dest_text" name="dest_text" class="form-control" placeholder="Ej. Central Park, New York" />
+                    <button type="button" id="geocode_dest" class="btn btn-outline-primary">Buscar</button>
+                  </div>
+                  <div class="row gx-2">
+                    <div class="col-6"><input id="dest_lat" name="dest_lat" placeholder="Lat" class="form-control" /></div>
+                    <div class="col-6"><input id="dest_lon" name="dest_lon" placeholder="Lon" class="form-control" /></div>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">Pasajeros</label>
+                  <input type="number" name="passengers" min="1" max="10" value="1" class="form-control" />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Fecha y hora de subida</label>
+                  <input type="datetime-local" name="pickup_datetime" class="form-control" />
+                  <small class="text-muted">Puedes introducir manualmente o usar el selector.</small>
+                </div>
+
+                <div class="col-md-6 d-flex align-items-end justify-content-end">
+                  <button type="submit" class="btn btn-primary btn-lg">Calcular Fare Amount</button>
+                </div>
+
+                <div class="col-12">
+                  <div id="map"></div>
+                </div>
+
+              </div>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+      // Map init
+      const map = L.map('map').setView([40.75, -73.98], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+      }).addTo(map);
+      let originMarker = null, destMarker = null;
+
+      async function geocode(q) {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`;
+        const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+        const data = await res.json();
+        return data;
+      }
+
+      document.getElementById('geocode_origin').onclick = async () => {
+        const q = document.getElementById('origin_text').value;
+        if (!q) return;
+        const r = await geocode(q);
+        if (r && r.length>0) {
+          const lat = r[0].lat, lon = r[0].lon;
+          document.getElementById('origin_lat').value = lat;
+          document.getElementById('origin_lon').value = lon;
+          if (originMarker) map.removeLayer(originMarker);
+          originMarker = L.marker([lat,lon]).addTo(map).bindPopup('Origen').openPopup();
+          map.setView([lat,lon], 13);
+        } else alert('No se encontró la dirección');
+      }
+
+      document.getElementById('geocode_dest').onclick = async () => {
+        const q = document.getElementById('dest_text').value;
+        if (!q) return;
+        const r = await geocode(q);
+        if (r && r.length>0) {
+          const lat = r[0].lat, lon = r[0].lon;
+          document.getElementById('dest_lat').value = lat;
+          document.getElementById('dest_lon').value = lon;
+          if (destMarker) map.removeLayer(destMarker);
+          destMarker = L.marker([lat,lon]).addTo(map).bindPopup('Destino').openPopup();
+          map.setView([lat,lon], 13);
+        } else alert('No se encontró la dirección');
+      }
+
+      // allow clicking on map to set points
+      map.on('click', function(e) {
+        const lat = e.latlng.lat.toFixed(6), lon = e.latlng.lng.toFixed(6);
+        if (!originMarker) {
+          document.getElementById('origin_lat').value = lat;
+          document.getElementById('origin_lon').value = lon;
+          originMarker = L.marker([lat,lon]).addTo(map).bindPopup('Origen (click)').openPopup();
+        } else if (!destMarker) {
+          document.getElementById('dest_lat').value = lat;
+          document.getElementById('dest_lon').value = lon;
+          destMarker = L.marker([lat,lon]).addTo(map).bindPopup('Destino (click)').openPopup();
+        } else {
+          // reset
+          map.removeLayer(originMarker);
+          map.removeLayer(destMarker);
+          originMarker = null; destMarker = null;
+        }
+      });
+    </script>
+  </body>
+</html>

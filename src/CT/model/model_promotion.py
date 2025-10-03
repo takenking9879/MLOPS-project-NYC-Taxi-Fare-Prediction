@@ -345,7 +345,6 @@ class ModelPromotionCT(BaseUtils):
         if self.new_version:
             guardar_version_parquets(None, original_path, json_path, version)
 
-
 def main():
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
     params = os.path.join(root, "params.yaml")

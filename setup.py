@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="mlops_credit",  # Nombre de tu librería
+    name="mlops_taxi",  # Nombre de tu librería
     version="0.1.0",
-    description="Package for the MLOps project for credit card fraud detection",
+    description="Package for the MLOps project for taxi fare prediction",
     author="Jorge Angel Manzanares Cortes",
     author_email="projorge.15@gmail.com",
     packages=find_packages(),           # Indica que los paquetes vienen de src/
@@ -12,7 +12,6 @@ setup(
         "Flask==3.1.2",
         "Flask_Cors==6.0.1",
         "dvc==3.63.0",
-        "kagglehub==0.3.13",
         "boto3==1.40.26",
         "PyYAML==6.0.2",
         "requests==2.32.5",

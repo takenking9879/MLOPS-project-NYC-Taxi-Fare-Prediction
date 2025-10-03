@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Resultado - Fare</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body { background: linear-gradient(180deg,#f8fafc,#ffffff); }
+      .card-result { border-radius: 12px; padding: 2rem; box-shadow: 0 8px 30px rgba(20,20,30,0.06); }
+      .fare-value { font-size: 3.2rem; font-weight: 800; color: #0d6efd; }
+    </style>
+  </head>
+  <body>
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card card-result">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2>Fare Amount estimado</h2>
+              <small class="text-muted">Versión: {{ version }} - método: {{ method }}</small>
+            </div>
+
+            <div class="text-center my-4">
+              <div class="fare-value">${{ fare }}</div>
+              <p class="mt-2">Este es el monto estimado para el viaje</p>
+            </div>
+
+            {% if breakdown %}
+            <div class="mb-3">
+              <h5>Desglose de predicciones</h5>
+              <ul>
+                {% for k,v in breakdown.items() %}
+                  <li><strong>{{ k }}:</strong> {{ v }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">Volver</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
