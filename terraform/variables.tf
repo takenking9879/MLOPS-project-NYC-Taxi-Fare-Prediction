@@ -33,6 +33,11 @@ variable "app_port" {
   type        = number
   default     = 8000
 }
+variable "osrm_port" {
+  description = "Puerto de la aplicación"
+  type        = number
+  default     = 5000
+}
 
 variable "ecr_repo_name" {
   description = "Nombre del repositorio ECR"

@@ -2,14 +2,14 @@ name: CI/CD Compose + ECR
 
 on:
   push:
-    branches: [ main ]
-    paths-ignore: [ 'README.md' ]
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
 
 permissions:
+  id-token: write
   contents: read
-
-env:
-  IMAGE_TAG: latest
 
 jobs:
   integration:
@@ -26,12 +26,15 @@ jobs:
     name: Build & Push Flask Image to ECR
     needs: integration
     runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.build-image.outputs.image }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Configure AWS credentials (for build)
+      - name: Install Utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq unzip
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -44,103 +47,50 @@ jobs:
 
       - name: Build, tag and push image
         id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG: latest
         run: |
-          set -euo pipefail
-          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY_NAME }}
-          IMAGE_TAG=${{ env.IMAGE_TAG }}
-          IMAGE="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
-          echo "Building image $IMAGE"
-          docker build --pull -f Dockerfile.flask -t "$IMAGE" .
-          docker push "$IMAGE"
-          # exportar output del step (disponible como steps.build-image.outputs.image)
-          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          echo "Building image"
+          docker build --pull -f Dockerfile.flask -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-  deploy:
-    name: Deploy to self-hosted (docker compose)
+  Continuous-Deployment:
     needs: build-and-push-ecr-image
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Configure AWS credentials (on runner)
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      
       - name: Pull & up compose
-        env:
-          FALLBACK_REGISTRY: ${{ secrets.AWS_ECR_LOGIN_URI }}   # e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com
-          FALLBACK_REPO: ${{ secrets.ECR_REPOSITORY_NAME }}
         run: |
-          set -euo pipefail
+          # definir imagen directamente desde secrets
+          FLASK_IMAGE="${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest"
+          echo "Using image: $FLASK_IMAGE"
 
-          # 1) Imagen resultante del job de build (si todo fue bien)
-          BUILD_IMAGE="${{ needs.build-and-push-ecr-image.outputs.image }}"
-
-          # 2) Si no está disponible, fallback a secrets
-          if [ -z "$BUILD_IMAGE" ]; then
-            echo "WARN: build job did not provide an image. Falling back to secrets-based image."
-            if [ -n "${FALLBACK_REGISTRY:-}" ] && [ -n "${FALLBACK_REPO:-}" ]; then
-              IMAGE="${FALLBACK_REGISTRY}/${FALLBACK_REPO}:${{ env.IMAGE_TAG }}"
-            else
-              echo "ERROR: No built image and no fallback registry/repo configured. Exiting."
-              exit 1
-            fi
-          else
-            IMAGE="$BUILD_IMAGE"
-          fi
-
-          echo "Using image: $IMAGE"
-
-          # 3) extraer REGISTRY (host) del IMAGE (parte antes de la primera '/')
-          REGISTRY="${IMAGE%%/*}"
-          echo "Registry host: $REGISTRY"
-
-          # 4) entrar al directorio checkout (debe existir en el runner)
           cd "${{ github.workspace }}"
 
-          # 5) asegurarse de que aws cli esté disponible para hacer 'get-login-password'
-          if ! command -v aws >/dev/null 2>&1; then
-            echo "aws CLI not found — attempting apt install (requires sudo)..."
-            if command -v apt-get >/dev/null 2>&1; then
-              sudo apt-get update -y
-              sudo apt-get install -y awscli || true
-            fi
-          fi
+          # exportar variable para docker-compose
+          export FLASK_IMAGE
 
-          if ! command -v aws >/dev/null 2>&1; then
-            echo "aws CLI still not available. Trying pip install..."
-            python3 -m pip install --user awscli
-            export PATH="$HOME/.local/bin:$PATH"
-          fi
+          DOCKER_COMPOSE_CMD="docker-compose"
 
-          if ! command -v aws >/dev/null 2>&1; then
-            echo "ERROR: aws CLI is required on the self-hosted runner to login to ECR. Install it and re-run."
-            exit 1
-          fi
-
-          # 6) docker login to the registry (uses AWS credentials configured earlier)
-          echo "Logging into ECR registry $REGISTRY ..."
-          aws ecr get-login-password --region "${{ secrets.AWS_REGION }}" \
-            | docker login --username AWS --password-stdin "$REGISTRY"
-
-          # 7) exportar variable que docker-compose.prod.yml utiliza: ${FLASK_IMAGE}
-          export FLASK_IMAGE="$IMAGE"
-
-          # 8) elegir comando docker-compose (v1) o docker compose (v2)
-          if command -v docker-compose >/dev/null 2>&1; then
-            DOCKER_COMPOSE_CMD="docker-compose"
-          else
-            DOCKER_COMPOSE_CMD="docker compose"
-          fi
-
-          # 9) pull y up
+          # levantar servicios con compose usando la imagen del secret
           echo "Running: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml pull flask"
           $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml pull flask
 
           echo "Running: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml up -d --remove-orphans"
           $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml up -d --remove-orphans
-

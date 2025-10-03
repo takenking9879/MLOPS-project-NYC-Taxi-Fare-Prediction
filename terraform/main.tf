@@ -49,6 +49,13 @@ resource "aws_security_group" "my_app_sg" {
     description = "Allow App Port"
   }
   ingress {
+    from_port   = var.osrm_port
+    to_port     = var.osrm_port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow App Port"
+  }
+  ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
