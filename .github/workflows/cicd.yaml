@@ -27,7 +27,6 @@ jobs:
     needs: integration
     runs-on: ubuntu-latest
     outputs:
-      # Este output toma el valor que definimos en el step build-image
       image: ${{ steps.build-image.outputs.image }}
     steps:
       - uses: actions/checkout@v3
@@ -58,6 +57,7 @@ jobs:
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
   deploy:
+    name: Deploy to self-hosted (docker compose)
     needs: build-and-push-ecr-image
     runs-on: self-hosted
     steps:
@@ -70,53 +70,74 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to ECR (on runner for docker pull)
-        id: login-ecr-runner
-        uses: aws-actions/amazon-ecr-login@v1
-
       - name: Pull & up compose
+        env:
+          FALLBACK_REGISTRY: ${{ secrets.AWS_ECR_LOGIN_URI }}   # e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com
+          FALLBACK_REPO: ${{ secrets.ECR_REPOSITORY_NAME }}
         run: |
           set -euo pipefail
 
-          # imagen producida por el job de build (puede venir vacía si algo falló)
+          # 1) Imagen resultante del job de build (si todo fue bien)
           BUILD_IMAGE="${{ needs.build-and-push-ecr-image.outputs.image }}"
 
-          # fallback: usar secret AWS_ECR_LOGIN_URI + repo + tag si BUILD_IMAGE vacío
+          # 2) Si no está disponible, fallback a secrets
           if [ -z "$BUILD_IMAGE" ]; then
             echo "WARN: build job did not provide an image. Falling back to secrets-based image."
-            # espera que AWS_ECR_LOGIN_URI sea algo como: 123456789012.dkr.ecr.us-east-1.amazonaws.com
-            FALLBACK_REGISTRY="${{ secrets.AWS_ECR_LOGIN_URI }}"
-            FALLBACK_REPO="${{ secrets.ECR_REPOSITORY_NAME }}"
-            IMAGE_TAG="${{ env.IMAGE_TAG }}"
-            IMAGE="${FALLBACK_REGISTRY}/${FALLBACK_REPO}:${IMAGE_TAG}"
+            if [ -n "${FALLBACK_REGISTRY:-}" ] && [ -n "${FALLBACK_REPO:-}" ]; then
+              IMAGE="${FALLBACK_REGISTRY}/${FALLBACK_REPO}:${{ env.IMAGE_TAG }}"
+            else
+              echo "ERROR: No built image and no fallback registry/repo configured. Exiting."
+              exit 1
+            fi
           else
             IMAGE="$BUILD_IMAGE"
           fi
 
           echo "Using image: $IMAGE"
 
-          # entrar al directorio checkout (debe existir en el runner)
+          # 3) extraer REGISTRY (host) del IMAGE (parte antes de la primera '/')
+          REGISTRY="${IMAGE%%/*}"
+          echo "Registry host: $REGISTRY"
+
+          # 4) entrar al directorio checkout (debe existir en el runner)
           cd "${{ github.workspace }}"
 
-          # Hacer login al registry si se proporcionó AWS_ECR_LOGIN_URI en secrets
-          # (la acción amazon-ecr-login ya hizo login con la cuenta asociada al runner,
-          #  pero si fallback usa AWS_ECR_LOGIN_URI distinto, intentamos login manual con docker login si tenemos credenciales)
-          if [ -n "${{ secrets.AWS_ECR_LOGIN_URI }}" ]; then
-            echo "Ensuring docker is logged into registry ${{ secrets.AWS_ECR_LOGIN_URI }}"
-            # note: amazon-ecr-login action is used above; si por alguna razón no funcionó, el self-hosted runner ya debe tener acceso.
+          # 5) asegurarse de que aws cli esté disponible para hacer 'get-login-password'
+          if ! command -v aws >/dev/null 2>&1; then
+            echo "aws CLI not found — attempting apt install (requires sudo)..."
+            if command -v apt-get >/dev/null 2>&1; then
+              sudo apt-get update -y
+              sudo apt-get install -y awscli || true
+            fi
           fi
 
-          # exportar variable que docker-compose.prod.yml utiliza: ${FLASK_IMAGE}
+          if ! command -v aws >/dev/null 2>&1; then
+            echo "aws CLI still not available. Trying pip install..."
+            python3 -m pip install --user awscli
+            export PATH="$HOME/.local/bin:$PATH"
+          fi
+
+          if ! command -v aws >/dev/null 2>&1; then
+            echo "ERROR: aws CLI is required on the self-hosted runner to login to ECR. Install it and re-run."
+            exit 1
+          fi
+
+          # 6) docker login to the registry (uses AWS credentials configured earlier)
+          echo "Logging into ECR registry $REGISTRY ..."
+          aws ecr get-login-password --region "${{ secrets.AWS_REGION }}" \
+            | docker login --username AWS --password-stdin "$REGISTRY"
+
+          # 7) exportar variable que docker-compose.prod.yml utiliza: ${FLASK_IMAGE}
           export FLASK_IMAGE="$IMAGE"
 
-          # elegir comando docker-compose (v1) o docker compose (v2)
+          # 8) elegir comando docker-compose (v1) o docker compose (v2)
           if command -v docker-compose >/dev/null 2>&1; then
             DOCKER_COMPOSE_CMD="docker-compose"
           else
             DOCKER_COMPOSE_CMD="docker compose"
           fi
 
-          # tirar la imagen y levantar containers
+          # 9) pull y up
           echo "Running: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml pull flask"
           $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml pull flask
 
