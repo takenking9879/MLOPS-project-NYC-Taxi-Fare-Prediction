@@ -39,3 +39,7 @@ catboost_info/
 #Git
 .git
 .gitignore
+terraform/my-ec2-key.pem
+terraform/my-ec2-key.pub
+terraform/.terraform.lock.hcl
+terraform/.terraform/providers/registry.terraform.io/hashicorp

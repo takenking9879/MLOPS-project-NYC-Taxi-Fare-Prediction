@@ -1,0 +1,22 @@
+# docker-compose.prod.yml
+
+services:
+  osrm:
+    image: osrm/osrm-backend:latest
+    container_name: osrm
+    volumes:
+      - ./osrm:/data
+    command: ["osrm-routed", "--algorithm", "mld", "/data/new-york-250917.osrm"]
+    ports:
+      - "5000:5000"
+
+  flask:
+    image: ${FLASK_IMAGE}   # variable que pasaremos en deploy
+    container_name: nyc-flask
+    volumes:
+      - ./artifacts:/app/artifacts
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=production
+      - OSRM_BASE=http://osrm:5000/route/v1/driving

@@ -213,3 +213,10 @@ osrm/
 new_model/
 Evidentlytoken.txt
 /new_model
+outputs/
+USA_polygon/
+terraform/.terraform/
+terraform/my-ec2-key.pem
+terraform/my-ec2-key.pub
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate.backup
