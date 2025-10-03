@@ -112,6 +112,7 @@ resource "aws_instance" "my_app_instance" {
               sudo sh get-docker.sh
               sudo usermod -aG docker ubuntu
               newgrp docker
+              sudo apt install docker-compose -y
               EOF
 
   tags = {
