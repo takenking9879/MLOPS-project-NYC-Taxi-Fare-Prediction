@@ -11,7 +11,7 @@ services:
       - "5000:5000"
 
   flask:
-    image: 797926359381.dkr.ecr.us-east-2.amazonaws.com/mlops_taxi:latest  # variable que pasaremos en deploy
+    image: ${FLASK_IMAGE}
     container_name: nyc-flask
     volumes:
       - ./artifacts:/app/artifacts
@@ -20,3 +20,6 @@ services:
     environment:
       - FLASK_ENV=production
       - OSRM_BASE=http://osrm:5000/route/v1/driving
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
