@@ -17,7 +17,7 @@ data "aws_subnets" "default" {
 # --- Recursos de AWS ---
 
 ## Repositorio ECR
-resource "aws_ecr_repository" "mlops_credit" {
+resource "aws_ecr_repository" "mlops_taxi" {
   name = var.ecr_repo_name
 }
 
@@ -133,6 +133,6 @@ output "ec2_public_ip" {
 }
 
 output "ecr_uri" {
-  value = aws_ecr_repository.mlops_credit.repository_url
+  value = aws_ecr_repository.mlops_taxi.repository_url
 }
 
