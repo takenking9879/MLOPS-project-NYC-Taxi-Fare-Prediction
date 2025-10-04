@@ -126,6 +126,9 @@ Ejemplo de reporte generado:
 ---
 
 ## 🌐 Aplicación Web  
+Así es como se ve la interfaz de usuario y los resultados que se obtienen:
+![app_interface](images/app_interface.png)
+![app_result](images/app_result.png)
 
 - Interfaz amigable con el usuario usando **Leaflet + Nominatim**:  
   - Usuario selecciona origen/destino en el mapa.  
