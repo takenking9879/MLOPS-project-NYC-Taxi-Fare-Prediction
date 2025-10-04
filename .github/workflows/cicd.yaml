@@ -94,7 +94,7 @@ jobs:
       - name: Download OSRM data from S3
         run: |
           mkdir -p ./osrm
-          aws s3 cp s3://myosrmbucket/osrm/new-york-250917.osrm.* ./osrm/
+          aws s3 cp s3://myosrmbucket/osrm/ ./osrm/ --recursive
 
       - name: Pull latest images
         run: |
