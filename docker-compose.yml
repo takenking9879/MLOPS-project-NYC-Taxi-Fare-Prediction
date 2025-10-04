@@ -15,7 +15,7 @@ services:
   flask:
     build:
       context: .
-      dockerfile: Dockerfile.flask
+      dockerfile: Dockerfile
     container_name: nyc-flask
     # Montar carpetas necesarias para tu app
     volumes:
