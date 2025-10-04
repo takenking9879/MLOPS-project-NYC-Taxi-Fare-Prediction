@@ -5,16 +5,17 @@ services:
     image: osrm/osrm-backend:latest
     container_name: osrm
     volumes:
-      - ./osrm:/data
+      - ./osrm:/data   # aquí se montarán los archivos OSRM descargados de S3
     command: ["osrm-routed", "--algorithm", "mld", "/data/new-york-250917.osrm"]
     ports:
       - "5000:5000"
 
   flask:
-    image: 797926359381.dkr.ecr.us-east-2.amazonaws.com/mlops_taxi:latest  # variable que pasaremos en deploy
+    image: ${FLASK_IMAGE}   # ahora toma la variable de entorno del workflow
     container_name: nyc-flask
     ports:
       - "8000:8000"
     environment:
       - FLASK_ENV=production
       - OSRM_BASE=http://osrm:5000/route/v1/driving
+

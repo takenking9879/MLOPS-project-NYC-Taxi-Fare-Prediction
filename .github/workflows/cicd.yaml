@@ -79,20 +79,25 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-      
+        run: |
+          echo "Logging in to ECR..."
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+            docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_LOGIN_URI }}
+
+      - name: Download OSRM data from S3
+        run: |
+          mkdir -p ./osrm
+          aws s3 cp s3://myosrmbucket/osrm/new-york-250917.osrm.* ./osrm/
+
       - name: Pull latest images
         run: |
-         docker pull ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
-         
-      # - name: Stop and remove container if running
-      #   run: |
-      #    docker ps -q --filter "name=cnncls" | grep -q . && docker stop cnncls && docker rm -fv cnncls
-       
-      - name: Run Docker Image to serve users
+          docker-compose -f docker-compose.prod.yml pull
+
+      - name: Launch services with docker-compose
         run: |
-         docker run -d -p 8000:8000 --name=cnncls -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' -e 'AWS_REGION=${{ secrets.AWS_REGION }}'  ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
-      - name: Clean previous images and containers
+          export FLASK_IMAGE=${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+          docker-compose -f docker-compose.prod.yml up -d
+
+      - name: Clean up unused images and containers
         run: |
-         docker system prune -f
+          docker system prune -f
