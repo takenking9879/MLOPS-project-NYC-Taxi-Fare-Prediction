@@ -84,7 +84,7 @@ jobs:
           # exportar variable para docker-compose
           export FLASK_IMAGE
 
-          DOCKER_COMPOSE_CMD="docker-compose"
+          DOCKER_COMPOSE_CMD="sudo docker-compose"
 
           # levantar servicios con compose usando la imagen del secret
           echo "Running: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml pull flask"
