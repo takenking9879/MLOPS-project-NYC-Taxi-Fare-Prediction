@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/GitHub_Actions-CI%2FCD-black?logo=githubactions" />
 </p>
 
-Proyecto MLOps de extremo a extremo que cubre ingesta de datos, preprocesamiento, entrenamiento de modelos, seguimiento de experimentos, despliegue, entrenamiento continuo y monitoreo continuo para predecir tarifas de taxis en Nueva York. Se usaron varias técnicas para optimizar el manejo de la RAM
+Proyecto MLOps de extremo a extremo que cubre ingesta de datos, preprocesamiento, entrenamiento de modelos, seguimiento de experimentos, despliegue, entrenamiento continuo y monitoreo continuo para predecir tarifas de taxis en Nueva York. Se usaron varias técnicas para optimizar el manejo de la RAM. Pipeline reproducible y seguro con GitHub Secrets, IAM mínimo, versionado de modelos y selección dinámica de versión desde la app.
 
 ---
 
