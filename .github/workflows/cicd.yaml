@@ -79,10 +79,8 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        run: |
-          echo "Logging in to ECR..."
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-            docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_LOGIN_URI }}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Download OSRM data from S3
         run: |
