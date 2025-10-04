@@ -71,10 +71,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR
+      - name: Login to Amazon ECR as runner user
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      
+
+      - name: Ensure root can access ECR (login as root)
+        # ejecuta aws (con las credenciales ya configuradas) y hace login en docker como root
+        run: |
+          echo "Logging into ECR as root so sudo docker-compose can pull images..."
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+            | sudo docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_LOGIN_URI }}
+
       - name: Pull & up compose
         run: |
           sudo docker-compose -f docker-compose.prod.yml pull flask
