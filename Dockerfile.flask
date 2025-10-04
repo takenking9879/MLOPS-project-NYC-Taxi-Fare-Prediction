@@ -5,6 +5,7 @@ WORKDIR /app
 
 # Copiar solo la carpeta de la app
 COPY flask_app/ /app/flask_app/
+COPY artifacts/ /app/artifacts/
 
 # Copiar requirements
 COPY requirements_prod.txt /app/requirements_prod.txt

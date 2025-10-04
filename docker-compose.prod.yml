@@ -13,8 +13,6 @@ services:
   flask:
     image: 797926359381.dkr.ecr.us-east-2.amazonaws.com/mlops_taxi:latest  # variable que pasaremos en deploy
     container_name: nyc-flask
-    volumes:
-      - ./artifacts:/app/artifacts
     ports:
       - "8000:8000"
     environment:
