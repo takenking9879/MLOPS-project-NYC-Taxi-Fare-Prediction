@@ -261,7 +261,7 @@ def osrm_distance(df: pd.DataFrame) -> pd.DataFrame:
     merged_chunk = asyncio.run(
         run_chunk_async(df[["Start_Lon","Start_Lat","End_Lon","End_Lat"]],
                         osrm_base=osrm_base,
-                        concurrency=10)
+                        concurrency=5)
     )
     # Alinear índices y añadir columnas al df
     merged_chunk.index = df.index
