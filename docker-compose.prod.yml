@@ -11,7 +11,7 @@ services:
       - "5000:5000"
 
   flask:
-    image: ${FLASK_IMAGE}   # variable que pasaremos en deploy
+    image: 797926359381.dkr.ecr.us-east-2.amazonaws.com/mlops_taxi:latest  # variable que pasaremos en deploy
     container_name: nyc-flask
     volumes:
       - ./artifacts:/app/artifacts
