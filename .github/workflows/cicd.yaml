@@ -96,13 +96,10 @@ jobs:
           mkdir -p ./osrm
           aws s3 cp s3://myosrmbucket/osrm/ ./osrm/ --recursive
 
-      - name: Pull latest images
-        run: |
-          docker-compose -f docker-compose.prod.yml pull
-
-      - name: Launch services with docker-compose
+      - name: Pull and launch services
         run: |
           export FLASK_IMAGE=${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+          docker-compose -f docker-compose.prod.yml pull
           docker-compose -f docker-compose.prod.yml up -d
 
       - name: Clean up unused images and containers
