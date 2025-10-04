@@ -174,8 +174,9 @@ El proyecto se despliega utilizando **AWS** con la siguiente arquitectura:
   - Aunque es posible descargar datos históricos de **2011 a 2016** con coordenadas, existen limitaciones debido al **tamaño de los datos a descargar**.  
 
 - **Airflow**:  
-  - No se integró en este proyecto debido a la **baja accesibilidad a datos con coordenadas**, lo cual dificulta la orquestación en escenarios más amplios.  
-
+  - No se integró en este proyecto debido a la **baja accesibilidad a datos con coordenadas**, lo cual dificulta la orquestación en escenarios más amplios.
+ 
+- Se eliminaron los recursos de la nube utilizando `terraform destroy` para evitar costos adicionales y liberar la infraestructura provisionada.
 ---
 
 ## 📈 Resultados Observados vs Benchmark
