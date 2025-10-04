@@ -1,18 +1,22 @@
 # 🚖 NYC Taxi Fare Prediction  
 
-[![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python)](https://www.python.org/)  
-[![MLflow](https://img.shields.io/badge/MLflow-Tracking-orange?logo=mlflow)](https://mlflow.org/)  
-[![DVC](https://img.shields.io/badge/DVC-Data_Versioning-purple?logo=dvc)](https://dvc.org/)  
-[![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker)](https://www.docker.com/)  
-[![Docker Compose](https://img.shields.io/badge/Docker--Compose-Orchestration-2496ED?logo=docker)](https://docs.docker.com/compose/)  
-[![Terraform](https://img.shields.io/badge/Terraform-Infrastructure-623CE4?logo=terraform)](https://www.terraform.io/)  
-[![AWS](https://img.shields.io/badge/AWS-S3%20%7C%20ECR%20%7C%20EC2-orange?logo=amazonaws)](https://aws.amazon.com/)  
-[![OSRM](https://img.shields.io/badge/OSRM-Routing-black)](http://project-osrm.org/)  
-[![Nominatim](https://img.shields.io/badge/Nominatim-Geocoding-green)](https://nominatim.org/)  
-[![Flask](https://img.shields.io/badge/Flask-API-black?logo=flask)](https://flask.palletsprojects.com/)  
-[![Gunicorn](https://img.shields.io/badge/Gunicorn-WSGI-00A86B?logo=gunicorn)](https://gunicorn.org/)  
-[![Evidently AI](https://img.shields.io/badge/EvidentlyAI-Monitoring-blueviolet)](https://evidentlyai.com/)  
-[![CI/CD](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-black?logo=githubactions)](https://github.com/features/actions)  
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11-blue?logo=python" /> 
+  <img src="https://img.shields.io/badge/MLflow-Tracking-orange?logo=mlflow" /> 
+  <img src="https://img.shields.io/badge/DVC-Data_Versioning-purple?logo=dvc" /> 
+  <img src="https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker" /> 
+  <img src="https://img.shields.io/badge/Docker--Compose-Orchestration-2496ED?logo=docker" /> 
+  <img src="https://img.shields.io/badge/Terraform-Infrastructure-623CE4?logo=terraform" /> 
+  <img src="https://img.shields.io/badge/AWS-S3%20%7C%20ECR%20%7C%20EC2-orange?logo=amazonaws" /> 
+  <img src="https://img.shields.io/badge/OSRM-Routing-black" /> 
+  <img src="https://img.shields.io/badge/Nominatim-Geocoding-green" /> 
+  <img src="https://img.shields.io/badge/Flask-API-black?logo=flask" /> 
+  <img src="https://img.shields.io/badge/Gunicorn-WSGI-00A86B?logo=gunicorn" /> 
+  <img src="https://img.shields.io/badge/EvidentlyAI-Monitoring-blueviolet" /> 
+  <img src="https://img.shields.io/badge/GitHub_Actions-CI%2FCD-black?logo=githubactions" />
+</p>
+
+Proyecto MLOps de extremo a extremo que cubre ingesta de datos, preprocesamiento, entrenamiento de modelos, seguimiento de experimentos, despliegue, entrenamiento continuo y monitoreo continuo para predecir tarifas de taxis en Nueva York.
 
 ---
 
